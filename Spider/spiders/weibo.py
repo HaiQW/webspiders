@@ -5,6 +5,7 @@ import urllib
 import scrapy
 import requests
 from scrapy.http import Request
+from scrapy import log
 
 from Spider.sina.weibo import weibo
 from Spider.items import WeiboItem, ParamItem
@@ -13,22 +14,31 @@ from Spider.items import WeiboItem, ParamItem
 # from pyquery import PyQuery as pq
 # from scrapy.contrib.linkextractors import LinkExtractor
 
-class Weibo(scrapy.Spider):
+class Weibo(scrapy.spider.BaseSpider):
+
     name = 'weibo'
-    weibo = weibo()
-    session = weibo.login('15557106533', 'wenghaiqin')
-    allowed_domains = ['weibo.com']
-    start_urls = ["http://weibo.com/3856926178/home?wvr=5"]
-    cookiejar = requests.utils.dict_from_cookiejar(session.cookies)
-    cookie = {'ALF': cookiejar['ALF'],
-              'sso_info': cookiejar['sso_info'],
-              'SUB': cookiejar['SUB'],
-              'SUBP': cookiejar['SUBP'],
-              'SUE': cookiejar['SUE'],
-              'SUHB': cookiejar['SUHB'],
-              'SUP': cookiejar['SUP'],
-              'SUS': cookiejar['SUS']}
-    param = ParamItem(name='', weibo_num='20', fellowing_num='', fellower_num='')
+
+    def __init__(self, name, password, *args, **kwargs):
+        super(Weibo, self).__init__(*args, **kwargs)
+        self.name = 'weibo'
+        self.start_urls = ["http://weibo.com"]
+        self.allowed_domains = ["weibo.com"]
+        self.weibo = weibo()
+        self.session = self.weibo.login(name, password)
+        cookiejar = requests.utils.dict_from_cookiejar(self.session.cookies)
+
+        # Set sina weibo cookie
+        self.cookie = {'ALF': cookiejar['ALF'],
+                       'sso_info': cookiejar['sso_info'],
+                       'SUB': cookiejar['SUB'],
+                       'SUBP': cookiejar['SUBP'],
+                       'SUE': cookiejar['SUE'],
+                       'SUHB': cookiejar['SUHB'],
+                       'SUP': cookiejar['SUP'],
+                       'SUS': cookiejar['SUS']}
+
+        # Set spider parameters
+        self.param = None
 
     def start_requests(self):
         uid = 1246531434
@@ -38,9 +48,9 @@ class Weibo(scrapy.Spider):
         # Parse weibo homepage
         home_url = "http://weibo.cn/u/%s" % uid
         yield Request(url=home_url, cookies=self.cookie, callback=self._parse_homepage, errback=self._parse_fail)
-
         # Parse weibo content
-        weibo_num = self.param['weibo_num']
+        weibo_num = self.param
+        print weibo_num
         for page in range(0, (int(weibo_num)) / 10 + 1):
             content_url = "http://weibo.cn/%s/profile?page=%s" % (uid, page + 1)
             yield Request(url=content_url.encode("utf-8"), meta={'uid': 3856926178}, cookies=self.cookie,
@@ -56,7 +66,10 @@ class Weibo(scrapy.Spider):
         user_name = response.xpath('//div[@class="ut"]/text()').extract()
         param = response.xpath('//div[@class="tip2"]/a/text()').extract()
         param = re.findall(u'\d+', "".join(param).decode("utf-8"))
-        self.param = ParamItem(name=user_name[0], weibo_num=param[0], fellowing_num=param[1], fellower_num=param[2])
+        item = ParamItem(name=user_name[0], weibo_num=param[0], fellowing_num=param[1], fellower_num=param[2])
+
+        self.param = item
+        self.param = 2
 
     def _parse_weibo_content(self, response):
         """

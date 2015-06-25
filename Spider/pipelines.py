@@ -34,6 +34,14 @@ class ScrapyWeiboPipeline(object):
                 print "File \"%s\", line %s.\n MySql Error:%s" % (exc_traceback.tb_frame.f_code.co_filename,
                                                                   exc_traceback.tb_lineno, e)
 
+    def __del__(self):
+        try:
+            self.db.close()
+        except (AttributeError, MySQLdb.Error), e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            print "Cound not destrut the ScrapWeiboPipeline.Object.\nFile \"%s\", line %s.\n MySql Error:%s" \
+                  % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
+
     def process_item(self, item, spider):
         self._insert(item)
         return item
