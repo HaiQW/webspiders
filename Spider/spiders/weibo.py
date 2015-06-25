@@ -1,26 +1,23 @@
 # -*- coding: utf-8 -*-
 import re
 import urllib
-
-import scrapy
+import time
 import requests
 from scrapy.http import Request
 from scrapy import log
 
+from scrapy.spider import Spider
+
 from Spider.sina.weibo import weibo
 from Spider.items import WeiboItem, ParamItem
 
-
-# from pyquery import PyQuery as pq
-# from scrapy.contrib.linkextractors import LinkExtractor
-
-class Weibo(scrapy.spider.BaseSpider):
+class Weibo(Spider):
 
     name = 'weibo'
 
-    def __init__(self, name, password, *args, **kwargs):
+    def __init__(self, name, password, uid, *args, **kwargs):
         super(Weibo, self).__init__(*args, **kwargs)
-        self.name = 'weibo'
+        self.uid = uid
         self.start_urls = ["http://weibo.com"]
         self.allowed_domains = ["weibo.com"]
         self.weibo = weibo()
@@ -37,24 +34,10 @@ class Weibo(scrapy.spider.BaseSpider):
                        'SUP': cookiejar['SUP'],
                        'SUS': cookiejar['SUS']}
 
-        # Set spider parameters
-        self.param = None
-
     def start_requests(self):
-        uid = 1246531434
-        params = {'page': 1, 'section': 1, 'uid': 1246531434, 'start': '2015-03-15', 'end': '2015-06-15'}
-        urls = self._get_weibo_url(1246531434, 23)
-
         # Parse weibo homepage
-        home_url = "http://weibo.cn/u/%s" % uid
+        home_url = "http://weibo.cn/u/%s" % self.uid
         yield Request(url=home_url, cookies=self.cookie, callback=self._parse_homepage, errback=self._parse_fail)
-        # Parse weibo content
-        weibo_num = self.param
-        print weibo_num
-        for page in range(0, (int(weibo_num)) / 10 + 1):
-            content_url = "http://weibo.cn/%s/profile?page=%s" % (uid, page + 1)
-            yield Request(url=content_url.encode("utf-8"), meta={'uid': 3856926178}, cookies=self.cookie,
-                          callback=self._parse_weibo_content, errback=self._parse_fail)
 
     def _parse_homepage(self, response):
         """
@@ -68,8 +51,13 @@ class Weibo(scrapy.spider.BaseSpider):
         param = re.findall(u'\d+', "".join(param).decode("utf-8"))
         item = ParamItem(name=user_name[0], weibo_num=param[0], fellowing_num=param[1], fellower_num=param[2])
 
-        self.param = item
-        self.param = 2
+        print 'Parse weibo content.'
+        weibo_num = param[0]
+        print weibo_num
+        for page in range(0, (int(weibo_num))/10 + 1):
+            content_url = "http://weibo.cn/%s/profile?page=%s" % (self.uid, page + 1)
+            yield Request(url=content_url.encode("utf-8"), meta={'uid': self.uid}, cookies=self.cookie,
+                          dont_filter=True, callback=self._parse_weibo_content, errback=self._parse_fail)
 
     def _parse_weibo_content(self, response):
         """
@@ -89,12 +77,36 @@ class Weibo(scrapy.spider.BaseSpider):
             weibo_content = p.sub("", content)
             contents_array.append(weibo_content)
 
-        # Get the number of good, retweet and reply
+        # Get the number of good, retweet and reply. Get data time.
         feeds_array = []
         for feed in feeds:
             good = re.search(u"赞\[\d+\]", feed.decode("utf-8"))
             retweet = re.search(u"转发\[\d+", feed.decode("utf-8"))
             reply = re.search(u"评论\[\d+", feed.decode("utf-8"))
+            data_time = re.search(u"\d+-\d+-\d+ \d+:\d+:\d+|\d+分钟前|\d+月\d+日 \d+:\d+|今天 \d+:\d+", feed.decode("utf-8"))
+
+            # Format data time
+            data_type = "".join(re.findall(u"[\u4e00-\u9fa5]+", data_time.group(0)))
+            if data_type.decode("utf-8") == u"今天":
+                data_time = data_time.group(0).replace(u"今天 ", "")
+                cur_time = time.localtime()
+                month = str(cur_time.tm_mon/10)+str(cur_time.tm_mon-cur_time.tm_mon/10)
+                data_time = "%s-%s-%s %s:%s" % (cur_time.tm_year, month, cur_time.tm_mday, data_time,
+                                                cur_time.tm_sec)
+            elif data_type.decode("utf-8") == u"分钟前":
+                data_time = data_time.group(0).replace(u"分钟前", "")
+                data_time = int(data_time)
+                data_time = time.localtime(time.time()-int(data_time)*60)
+                data_time = time.strftime('%Y-%m-%d %H:%M:%S', data_time)
+            elif data_type.decode("utf-8") == u"月日":
+                data_time = data_time.group(0).replace(u"月", "-").replace(u"日", "")
+                cur_time = time.localtime()
+                data_time = "%s-%s:%s" % (cur_time.tm_year, data_time, cur_time.tm_sec)
+            else:
+                data_time = data_time.group(0)
+            print data_time
+
+            # Get the number of retweet, good, reply, feed
             if retweet and good and reply:
                 p = re.compile(u"\d+")
                 retweet_num = p.search(retweet.group(0).decode("utf-8")).group(0)
@@ -134,20 +146,29 @@ class Weibo(scrapy.spider.BaseSpider):
     #             print "Could not insert an item into mysql."
 
     def _parse_photo(self, response):
+        """
+        Parse and download some photos
+        :param response: Http response
+        :return: None
+        """
         photo_url = response.xpath('//a[contains(@href, "album")]/img/@src').extract()
         i = 10
         for photo in photo_url:
             photo = photo.encode('utf-8').replace("square", "large")
             conn = urllib.urlopen(photo)
             f = open("lady_professor/pic_" + str(i) + ".jpg", 'wb')
-            i = i + 1
+            i += 1
             f.write(conn.read())
-            # print conn.body
             f.close()
-
-            print photo
+            # print photo
 
     def _get_weibo_url(self, pid, page):
+        """
+        Get the weibo url to searcg
+        :param pid:
+        :param page:
+        :return:
+        """
         search_url = []
         url = 'http://weibo.cn/%s/profile?page=%s'
         for i in range(0, page):
@@ -159,11 +180,11 @@ class Weibo(scrapy.spider.BaseSpider):
         return albums_url % (pid, page)
 
     def _parse_fail(self, response):
-        print "fail to crawl from weibo."
+        log.err("Fail to parse the http response file.")
 
-    def process_request(self, request):
-        request = request.replace(**{'cookies': self.cookie})
-        return request
+    # def process_request(self, request):
+    #     request = request.replace(**{'cookies': self.cookie})
+    #     return request
 
     def _parse_friend_pid(self, response):
         """
@@ -182,4 +203,4 @@ class Weibo(scrapy.spider.BaseSpider):
                 # Parse the home page of friends's content
                 print uid, name, url
         else:
-            print "error in parse uid."
+            log.err("error in parse uid.")
