@@ -24,4 +24,3 @@ class ParamItem(Item):
     weibo_num = Field()
     fellowing_num = Field()
     fellower_num = Field()
-
