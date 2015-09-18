@@ -84,7 +84,4 @@ class weibo:
 
 if __name__ == '__main__':
     pass
-    # weibo = weibo()
-    # weibo.login('15557106533', 'wenghaiqin')
-
 
