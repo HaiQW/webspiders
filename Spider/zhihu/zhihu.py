@@ -2,13 +2,9 @@
 """
 The module that help login in zhihu.
 """
-
-import urllib2
-import urllib
-import cookielib
 import re
 import requests
-import sys
+from PIL import Image
 
 class Zhihu:
     user_agent = (
@@ -24,56 +20,79 @@ class Zhihu:
         self.user = user
         self.password = password
 
-        # Get a Cookie object
-        self.cookie_obj = cookielib.LWPCookieJar()
-        # Bind Cookie object to HttpRequest Object
-        self.cookie_support = urllib2.HTTPCookieProcessor(self.cookie_obj)
-        # Init an opener
-        self.opener = urllib2.build_opener(self.cookie_support, urllib2.HTTPHandler)
-        # Install the opener object
-        urllib2.install_opener(self.opener)
-
-    def login(self):
-        # get _xsrf
-        resp = self.session.get('http://www.zhihu.com/')
-        # <input type="hidden" name="_xsrf" value="d692bea9ca68c27fb92f411942d8e0a4"/>
-        parse_str = re.search('<input\s+type\s*=\s*"\s*hidden\s*".*', resp.text).group(0)
-        _xsrf = re.search('value\s*=\s*"\w+"', parse_str).group(0)
-        _xsrf = _xsrf.replace('value=', "").replace('"', '')
-        print _xsrf
-
-        captcha_url = 'http://www.zhihu.com/captcha.gif'
-        captcha = self.session.get(captcha_url, stream=True)
-        captcha_pic = open('pic.gif', 'w')
+    def _get_captcha(self):
+        """
+        Let the user himself to recognize the captcha.
+        """
+        captcha_str = None
+        # get the captcha gif picture
+        captcha = self.session.get('http://www.zhihu.com/captcha.gif')
+        # read and save this gif
+        captcha_pic = open('captcha.gif', 'wb')
         for line in captcha.iter_content(10):
             captcha_pic.write(line)
         captcha_pic.close()
 
+        print('Please enter the captcha: ')
         captcha_str = raw_input()
 
+        return captcha_str
+
+    def login(self):
+        # get _xsrf
+        resp = self.session.get('http://www.zhihu.com/')  # <input type="hidden" name="_xsrf" value="..."/>
+        parse_str = re.search('<input\s+type\s*=\s*"\s*hidden\s*".*', resp.text).group(0)
+        _xsrf = re.search('value\s*=\s*"\w+"', parse_str).group(0)
+        _xsrf = _xsrf.replace('value=', "").replace('"', '')
+
+        # # load captcha.gif
+        # captcha_url = 'http://www.zhihu.com/captcha.gif'
+        # captcha = self.session.get(captcha_url, stream=True)
+        # captcha_pic = open('picture.gif', 'w')
+        # for line in captcha.iter_content(10):
+        #     captcha_pic.write(line)
+        # captcha_pic.close()
+        #
+        #
+        # # Let the user to recognize the captcha string
+        # print("Please enter the captcha: ")
+        # captcha_str = self._get_captcha()
+
+        # prepare post data to login
         post_data = {
             '_xsrf': _xsrf,
             'email': 'wenghaiqin@qq.com',
             'password': 'wenghaiqin',
-            'remember_me': 'true',
-            'captcha': captcha_str
+            'remember_me': 'true'
         }
-        resp = self.session.post(
-            'http://www.zhihu.com/login/email',
-            data = post_data
-        )
 
-        # captcha_pic.close()
-        # print captcha
-        # pic = open(captcha)
+        # login
+        # resp = self.session.post(
+        #     'http://www.zhihu.com/login/email',
+        #     data = post_data
+        # )
+
         # print resp.text
-        # print u"\u9a8c\u8bc1\u7801\u9519\u8bef"
-        # login_url = re.search(r'replace\([\"\']([^\'\"]+)[\"\']', resp.text).group(1)
-        print resp.text
-        # self.session.get(login_url)
-        # response = self.session.get("http://weibo.com")
-        # return self.session
-        pass
+
+        # error_code = re.search('', )
+        # set the maximum login times
+        r = 1
+        while r!=0:
+            # get the captcha string
+            captcha_str = self._get_captcha()
+            post_data['captcha'] = captcha_str
+
+            #login
+            resp = self.session.post('http://www.zhihu.com/login/email', data=post_data)
+            r = re.search('"r"\s*:\s*\w+,', resp.text).group(0)
+            r = r.replace('"', '').replace(',', '').replace(':', '').replace('r', '')
+            print r
+            # try to login
+
+            pass
+
+        # print requests.utils.dict_from_cookiejar(self.session.cookies)
+        return self.session
 
 
 def main():
