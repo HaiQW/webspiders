@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-The module that help login in zhihu.
+知乎的爬虫登陆模块. The login module of zhihu.
 """
 import re
 import requests
@@ -8,11 +8,12 @@ from PIL import Image
 
 class Zhihu:
     user_agent = (
-         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36'
+         'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
+         '(KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36'
     )
     session = requests.session()
     session.headers['User-Agent'] = user_agent
-    session.headers['Origin'] = 'http://www.zhihu.com'
+    session.headers['Origin'] = 'http://www.zhihu.com/'
 
     def __init__(self, user, password):
         if user == None or password == None:
@@ -40,7 +41,7 @@ class Zhihu:
 
     def login(self):
         # get _xsrf
-        resp = self.session.get('http://www.zhihu.com/')  # <input type="hidden" name="_xsrf" value="..."/>
+        resp = self.session.get('http://www.zhihu.com/#signin')  # <input type="hidden" name="_xsrf" value="..."/>
         parse_str = re.search('<input\s+type\s*=\s*"\s*hidden\s*".*', resp.text).group(0)
         _xsrf = re.search('value\s*=\s*"\w+"', parse_str).group(0)
         _xsrf = _xsrf.replace('value=', "").replace('"', '')
@@ -77,19 +78,18 @@ class Zhihu:
         # error_code = re.search('', )
         # set the maximum login times
         r = 1
-        while r!=0:
+        while not r == 0:
+            print r
             # get the captcha string
             captcha_str = self._get_captcha()
             post_data['captcha'] = captcha_str
 
             #login
             resp = self.session.post('http://www.zhihu.com/login/email', data=post_data)
+            print resp.text
             r = re.search('"r"\s*:\s*\w+,', resp.text).group(0)
-            r = r.replace('"', '').replace(',', '').replace(':', '').replace('r', '')
+            r = int(r.replace('"', '').replace(',', '').replace(':', '').replace('r', ''))
             print r
-            # try to login
-
-            pass
 
         # print requests.utils.dict_from_cookiejar(self.session.cookies)
         return self.session
