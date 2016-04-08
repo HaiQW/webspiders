@@ -8,7 +8,7 @@ import logging, logging.config
 from PIL import Image
 
 # 加载logging配置
-logging.config.fileConfig("/home/haiqw/Documents/my_projects/spider/log/logging.conf")
+logging.config.fileConfig("/home/haiqw/Documents/my_projects/spider/logging.cfg")
 logger_name = "zhihu"
 logger = logging.getLogger(logger_name)
 
@@ -29,81 +29,70 @@ class Zhihu:
 
     def _get_captcha(self):
         """
-        Let the user himself to recognize the captcha.
+        Get captcha gif and let the user himself to recognize the captcha.
+        获取用户登陆时的验证码，并让用户识别验码.
         """
+        # 获取验证码图片的url
+        resp = self.session.get('https://www.zhihu.com/#sign')
+        captcha_url = re.search('/captcha.gif',resp.text).group(0)
+        print captcha_url
+        # 获取验证码图片并保存
         captcha_str = None
-        # get the captcha gif picture
         captcha = self.session.get('http://www.zhihu.com/captcha.gif')
-        # read and save this gif
         captcha_pic = open('captcha.gif', 'wb')
         for line in captcha.iter_content(10):
             captcha_pic.write(line)
         captcha_pic.close()
-
+        # 输入验证码
         print('Please enter the captcha: ')
         captcha_str = raw_input()
-
         return captcha_str
 
     def login(self):
-        # get _xsrf
+        # 获取_xsrf的值.get _xsrf
         resp = self.session.get('http://www.zhihu.com/#signin')  # <input type="hidden" name="_xsrf" value="..."/>
         parse_str = re.search('<input\s+type\s*=\s*"\s*hidden\s*".*', resp.text).group(0)
         _xsrf = re.search('value\s*=\s*"\w+"', parse_str).group(0)
         _xsrf = _xsrf.replace('value=', "").replace('"', '')
 
-        # # load captcha.gif
-        # captcha_url = 'http://www.zhihu.com/captcha.gif'
-        # captcha = self.session.get(captcha_url, stream=True)
-        # captcha_pic = open('picture.gif', 'w')
-        # for line in captcha.iter_content(10):
-        #     captcha_pic.write(line)
-        # captcha_pic.close()
-        #
-        #
-        # # Let the user to recognize the captcha string
-        # print("Please enter the captcha: ")
-        # captcha_str = self._get_captcha()
-
-        # prepare post data to login
         post_data = {
             '_xsrf': _xsrf,
-            'email': 'wenghaiqin@qq.com',
-            'password': 'wenghaiqin',
+            'email': self.user,
+            'password': self.password,
             'remember_me': 'true'
         }
 
-        # login
-        # resp = self.session.post(
-        #     'http://www.zhihu.com/login/email',
-        #     data = post_data
-        # )
-
-        # print resp.text
-
-        # error_code = re.search('', )
-        # set the maximum login times
+        # 模拟登陆
         r = 1
         while not r == 0:
-            print r
-            # get the captcha string
-            captcha_str = self._get_captcha()
-            post_data['captcha'] = captcha_str
+            # 需要用户输入验证码的情况
 
-            #login
+            # 登陆
             resp = self.session.post('http://www.zhihu.com/login/email', data=post_data)
-            print resp.text
             r = re.search('"r"\s*:\s*\w+,', resp.text).group(0)
             r = int(r.replace('"', '').replace(',', '').replace(':', '').replace('r', ''))
-            logger.info("log zhihu successfully.")
-            print r
-
-        # print requests.utils.dict_from_cookiejar(self.session.cookies)
+            if r == 0:
+                print (u"知乎登陆成功.")
+                logger.info(u'知乎登陆成功.')
+                break
+            else:
+                logger.info(u'知乎登陆失败，重新登陆.')
+                print(u'知乎登陆失败，用户名或者密码错误, 需要重新输入账号信息.')
+                print(u'请输入用户名:')
+                self.user = raw_input()
+                print(u'请输入密码:')
+                self.password = raw_input()
+                post_data = {
+                    '_xsrf': _xsrf,
+                    'email': self.user,
+                    'password': self.password,
+                    'remember_me': 'true'
+                }
         return self.session
 
 
 def main():
-    t_zhihu = Zhihu(user='wenghaiqin@qq.com', password='`')
+    t_zhihu = Zhihu(user='wenghaiqin@qq.com', password='')
     t_zhihu.login()
 
 if __name__ == '__main__':

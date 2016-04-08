@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-logging.config.fileConfig("./log/logging.conf")
+logging.config.fileConfig("./logging.cfg")
 
 # create logger
 logger_name = "zhihu"
