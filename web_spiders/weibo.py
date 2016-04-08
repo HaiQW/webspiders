@@ -3,18 +3,15 @@ import re
 import urllib
 import time
 import requests
+
 from scrapy.http import Request
 from scrapy import log
-
 from scrapy.spider import Spider
-
-from Spider.sina.weibo import weibo
-from Spider.items import WeiboItem, ParamItem
+from login.weibo import weibo
+from web_spiders.items import WeiboItem, ParamItem
 
 class Weibo(Spider):
-
     name = 'weibo'
-
     def __init__(self, name, password, uid, *args, **kwargs):
         super(Weibo, self).__init__(*args, **kwargs)
         self.uid = uid
@@ -23,7 +20,7 @@ class Weibo(Spider):
         self.weibo = weibo()
         self.session = self.weibo.login(name, password)
         cookiejar = requests.utils.dict_from_cookiejar(self.session.cookies)
-
+        print cookiejar
         # Set sina weibo cookie
         self.cookie = {'ALF': cookiejar['ALF'],
                        'sso_info': cookiejar['sso_info'],
@@ -45,15 +42,15 @@ class Weibo(Spider):
         :param response: Http response
         :return: Some parameter
         """
-        print 'Parse weibo homepage.'
+        print ('Parse weibo homepage.')
         user_name = response.xpath('//div[@class="ut"]/text()').extract()
         param = response.xpath('//div[@class="tip2"]/a/text()').extract()
-        param = re.findall(u'\d+', "".join(param).decode("utf-8"))
+        param = re.findall(u'\d+', "".join(param).encode("utf-8"))
         item = ParamItem(name=user_name[0], weibo_num=param[0], fellowing_num=param[1], fellower_num=param[2])
 
-        print 'Parse weibo content.'
+        print ('Parse weibo content.')
         weibo_num = param[0]
-        print weibo_num
+        print (weibo_num)
         for page in range(0, (int(weibo_num))/10 + 1):
             content_url = "http://weibo.cn/%s/profile?page=%s" % (self.uid, page + 1)
             yield Request(url=content_url.encode("utf-8"), meta={'uid': self.uid}, cookies=self.cookie,
@@ -65,8 +62,8 @@ class Weibo(Spider):
         :param response: http response
         :return: a list of parameters
         """
-        print "parse weibo content."
-        uid = str(response.meta['uid']).decode("utf-8")
+        print ("parse weibo content.")
+        uid = str(response.meta['uid']).encode("utf-8")
         contents = response.xpath('//div[@class="c"]/div/span[@class="ctt"]').extract()
         feeds = response.xpath('//div[@class="c"]/div[last()]').extract()  # last():the last elements
 
@@ -80,38 +77,38 @@ class Weibo(Spider):
         # Get the number of good, retweet and reply. Get data time.
         feeds_array = []
         for feed in feeds:
-            good = re.search(u"赞\[\d+\]", feed.decode("utf-8"))
-            retweet = re.search(u"转发\[\d+", feed.decode("utf-8"))
-            reply = re.search(u"评论\[\d+", feed.decode("utf-8"))
-            data_time = re.search(u"\d+-\d+-\d+ \d+:\d+:\d+|\d+分钟前|\d+月\d+日 \d+:\d+|今天 \d+:\d+", feed.decode("utf-8"))
+            good = re.search(u"赞\[\d+\]", feed.encode("utf-8"))
+            retweet = re.search(u"转发\[\d+", feed.encode("utf-8"))
+            reply = re.search(u"评论\[\d+", feed.encode("utf-8"))
+            data_time = re.search(u"\d+-\d+-\d+ \d+:\d+:\d+|\d+分钟前|\d+月\d+日 \d+:\d+|今天 \d+:\d+", feed.encode("utf-8"))
 
             # Format data time
             data_type = "".join(re.findall(u"[\u4e00-\u9fa5]+", data_time.group(0)))
-            if data_type.decode("utf-8") == u"今天":
+            if data_type.encode("utf-8") == u"今天":
                 data_time = data_time.group(0).replace(u"今天 ", "")
                 cur_time = time.localtime()
                 month = str(cur_time.tm_mon/10)+str(cur_time.tm_mon-cur_time.tm_mon/10)
                 data_time = "%s-%s-%s %s:%s" % (cur_time.tm_year, month, cur_time.tm_mday, data_time,
                                                 cur_time.tm_sec)
-            elif data_type.decode("utf-8") == u"分钟前":
+            elif data_type.encode("utf-8") == u"分钟前":
                 data_time = data_time.group(0).replace(u"分钟前", "")
                 data_time = int(data_time)
                 data_time = time.localtime(time.time()-int(data_time)*60)
                 data_time = time.strftime('%Y-%m-%d %H:%M:%S', data_time)
-            elif data_type.decode("utf-8") == u"月日":
+            elif data_type.encode("utf-8") == u"月日":
                 data_time = data_time.group(0).replace(u"月", "-").replace(u"日", "")
                 cur_time = time.localtime()
                 data_time = "%s-%s:%s" % (cur_time.tm_year, data_time, cur_time.tm_sec)
             else:
                 data_time = data_time.group(0)
-            print data_time
+            print (data_time)
 
             # Get the number of retweet, good, reply, feed
             if retweet and good and reply:
                 p = re.compile(u"\d+")
-                retweet_num = p.search(retweet.group(0).decode("utf-8")).group(0)
-                good_num = p.search(good.group(0).decode("utf-8")).group(0)
-                reply_num = p.search(reply.group(0).decode("utf-8")).group(0)
+                retweet_num = p.search(retweet.group(0).encode("utf-8")).group(0)
+                good_num = p.search(good.group(0).encode("utf-8")).group(0)
+                reply_num = p.search(reply.group(0).encode("utf-8")).group(0)
                 feeds_array.append([reply_num, retweet_num, good_num])
 
         # Pipeline item
@@ -201,6 +198,6 @@ class Weibo(Spider):
                 name = user_name[i]
                 url = "http://weibo.cn/u/%s" % uid  # Reform the home page url using uid
                 # Parse the home page of friends's content
-                print uid, name, url
+                print (uid, name, url)
         else:
             log.err("error in parse uid.")

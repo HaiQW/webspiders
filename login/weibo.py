@@ -6,7 +6,6 @@ import re
 import json
 import binascii
 import cookielib
-
 import requests
 import rsa
 
@@ -83,5 +82,6 @@ class weibo:
         return self.session
 
 if __name__ == '__main__':
-    pass
+    weibo_test = weibo()
+    seseion = weibo_test.login("15557106533", "87092046")
 
