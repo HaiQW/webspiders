@@ -4,7 +4,13 @@
 """
 import re
 import requests
+import logging, logging.config
 from PIL import Image
+
+# 加载logging配置
+logging.config.fileConfig("/home/haiqw/Documents/my_projects/spider/log/logging.conf")
+logger_name = "zhihu"
+logger = logging.getLogger(logger_name)
 
 class Zhihu:
     user_agent = (
@@ -89,6 +95,7 @@ class Zhihu:
             print resp.text
             r = re.search('"r"\s*:\s*\w+,', resp.text).group(0)
             r = int(r.replace('"', '').replace(',', '').replace(':', '').replace('r', ''))
+            logger.info("log zhihu successfully.")
             print r
 
         # print requests.utils.dict_from_cookiejar(self.session.cookies)

@@ -4,7 +4,7 @@ import logging.config
 logging.config.fileConfig("./log/logging.conf")
 
 # create logger
-logger_name = "weibo"
+logger_name = "zhihu"
 logger = logging.getLogger(logger_name)
 
 logger.debug('debug message')
