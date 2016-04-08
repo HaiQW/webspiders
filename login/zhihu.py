@@ -103,7 +103,7 @@ class Zhihu:
 
 
 def main():
-    t_zhihu = Zhihu(user='wenghaiqin@qq.com', password='1234567978')
+    t_zhihu = Zhihu(user='wenghaiqin@qq.com', password='`')
     t_zhihu.login()
 
 if __name__ == '__main__':

@@ -83,5 +83,5 @@ class weibo:
 
 if __name__ == '__main__':
     weibo_test = weibo()
-    seseion = weibo_test.login("15557106533", "87092046")
+    seseion = weibo_test.login("15557106533", "")
 
