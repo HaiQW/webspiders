@@ -12,7 +12,8 @@ logging.config.fileConfig("/home/haiqw/Documents/my_projects/spider/logging.cfg"
 logger_name = "zhihu"
 logger = logging.getLogger(logger_name)
 
-class Zhihu:
+class ZhihuLogin:
+    """知乎登陆模块"""
     user_agent = (
          'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36'
          '(KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36'
