@@ -8,10 +8,10 @@
 #     http://doc.scrapy.org/en/latest/topics/settings.html
 #
 
-BOT_NAME = 'web_spiders'
+BOT_NAME = 'webspiders'
 
-SPIDER_MODULES = ['web_spiders.spiders']
-NEWSPIDER_MODULE = 'web_spiders'
+SPIDER_MODULES = ['webspiders.spiders']
+NEWSPIDER_MODULE = 'webspiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scrapy_test (+http://www.yourdomain.com)'weibo_spider
@@ -20,7 +20,7 @@ DOWNLOAD_DELAY = 10
 TIME_DELAY = 30
 
 # Pipelines config
-ITEM_PIPELINES = {'web_spiders.pipelines.ScrapyWeiboPipeline': 300}
+ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
 
 
 # MySql configuration

@@ -7,18 +7,18 @@ import requests
 from scrapy.http import Request
 from scrapy import log
 from scrapy.spider import Spider
-from web_spiders.utils.zhihu_login import ZhihuLogin
-from web_spiders.items import WeiboItem, ParamItem
+from webspiders.utils.weibo import weibo
+from webspiders.items import WeiboItem, ParamItem
 
-class ZhihuSpider(Spider):
-    name = 'zhihu_spider'
+class Weibo(Spider):
+    name = 'weibo'
     def __init__(self, name, password, uid, *args, **kwargs):
-        super(Spider, self).__init__(*args, **kwargs)
+        super(Weibo, self).__init__(*args, **kwargs)
         self.uid = uid
-        self.start_urls = ["http://www.zhihu.com"]
-        self.allowed_domains = ["www.zhihu.com"]
-        self.zhihu = ZhihuLogin(name, password)
-        self.session = self.zhihu.login()
+        self.start_urls = ["http://weibo.com"]
+        self.allowed_domains = ["weibo.com"]
+        self.weibo = weibo()
+        self.session = self.weibo.login(name, password)
         cookiejar = requests.utils.dict_from_cookiejar(self.session.cookies)
         print cookiejar
         # Set sina weibo cookie
@@ -201,4 +201,3 @@ class ZhihuSpider(Spider):
                 print (uid, name, url)
         else:
             log.err("error in parse uid.")
-

@@ -8,7 +8,7 @@ import logging, logging.config
 from PIL import Image
 
 # 加载logging配置
-logging.config.fileConfig("/home/haiqw/Documents/my_projects/web_spiders/logging.cfg")
+logging.config.fileConfig("/home/haiqw/Documents/my_projects/webspiders/logging.cfg")
 logger_name = "zhihu"
 logger = logging.getLogger(logger_name)
 
