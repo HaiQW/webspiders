@@ -7,7 +7,7 @@ import requests
 from scrapy.http import Request
 from scrapy import log
 from scrapy.spider import Spider
-from login.weibo import weibo
+from web_spiders.utils.weibo import weibo
 from web_spiders.items import WeiboItem, ParamItem
 
 class Weibo(Spider):

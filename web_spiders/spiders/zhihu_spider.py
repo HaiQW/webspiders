@@ -7,7 +7,7 @@ import requests
 from scrapy.http import Request
 from scrapy import log
 from scrapy.spider import Spider
-from login.zhihu_login import ZhihuLogin
+from web_spiders.utils.zhihu_login import ZhihuLogin
 from web_spiders.items import WeiboItem, ParamItem
 
 class ZhihuSpider(Spider):
@@ -201,3 +201,4 @@ class ZhihuSpider(Spider):
                 print (uid, name, url)
         else:
             log.err("error in parse uid.")
+
