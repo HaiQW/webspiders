@@ -7,7 +7,30 @@
 
 import sys
 import MySQLdb
+import logging
+import logging.config
+
 import settings
+
+# 加在log信息
+logging.config.fileConfig("/home/haiqw/Documents/my_projects/webspiders/logging.cfg")
+logger_name = 'zhihu'
+logger = logging.getLogger(logger_name)
+
+
+class ZhihuPipeline(object):
+    """Write item of zhihu to mysql"""
+
+    def __init__(self):
+        self.sql = settings.SQL_PATH
+        try:
+            self.db = MySQLdb.connect(settings.MYSQL_HOST, settings.USER_NAME,
+                                      settings.PASSWORD, settings.DATABASE)
+            self.cursor = self.db.cursor()
+        except MySQLdb.Error, e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            error_info = "File \"%s\", line %s. \n MySQL Error:%s" % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
+            logger.error(error_info)
 
 
 # Write item to mysql

@@ -20,7 +20,7 @@ DOWNLOAD_DELAY = 10
 TIME_DELAY = 30
 
 # Pipelines config
-ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
+# ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
 
 
 # MySql configuration
@@ -28,6 +28,6 @@ MYSQL_HOST = "localhost"
 USER_NAME = "root"
 PASSWORD = ""
 DATABASE = "sina"
-SQL_PATH = "mysql.cfg"
+SQL_PATH = '/home/haiqw/Documents/my_projects/webspiders/webspiders/mysql.cfg'
 
-
+# logging config
