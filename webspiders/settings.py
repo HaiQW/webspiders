@@ -14,7 +14,7 @@ SPIDER_MODULES = ['webspiders.spiders']
 NEWSPIDER_MODULE = 'webspiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'scrapy_test (+http://www.yourdomain.com)'weibo_spider
+# USER_AGENT = 'scrapy_test (+http://www.yourdomain.com)'weibo_spider
 
 DOWNLOAD_DELAY = 10
 TIME_DELAY = 30
@@ -22,6 +22,10 @@ TIME_DELAY = 30
 # Pipelines config
 # ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
 
+# 处理js的中间间
+DOWNLOAD_MIDDLEWARES = {
+    'scrapyjs.SplashMiddleware': 725,
+}
 
 # MySql configuration
 MYSQL_HOST = "localhost"
