@@ -20,7 +20,7 @@ DOWNLOAD_DELAY = 10
 TIME_DELAY = 30
 
 # Pipelines config
-# ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
+ITEM_PIPELINES = {'webspiders.pipelines.ScrapyWeiboPipeline': 300}
 
 # 处理js的中间间
 DOWNLOAD_MIDDLEWARES = {
@@ -30,8 +30,8 @@ DOWNLOAD_MIDDLEWARES = {
 # MySql configuration
 MYSQL_HOST = "localhost"
 USER_NAME = "root"
-PASSWORD = ""
-DATABASE = "sina"
+PASSWORD = "whq"
+DATABASE = "webspider"
 SQL_PATH = '/home/haiqw/Documents/my_projects/webspiders/webspiders/mysql.cfg'
 
 # logging config

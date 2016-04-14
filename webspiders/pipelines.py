@@ -33,8 +33,9 @@ class ZhihuPipeline(object):
             logger.error(error_info)
 
 
-# Write item to mysql
 class ScrapyWeiboPipeline(object):
+    """将weibo的item写入到mysql数据库. Write weibo item to mysql."""
+
     def __init__(self):
         self.sql = settings.SQL_PATH
         try:
@@ -46,7 +47,6 @@ class ScrapyWeiboPipeline(object):
             print "File \"%s\", line %s. \n MySQL Error:%s" % (exc_traceback.tb_frame.f_code.co_filename,
                                                                exc_traceback.tb_lineno, e)
 
-        # Execute sql file
         for line in open(self.sql, 'r'):
             try:
                 self.cursor.execute(line)
@@ -57,10 +57,12 @@ class ScrapyWeiboPipeline(object):
 
     def __del__(self):
         try:
+            info = "close database."
             self.db.close()
         except (AttributeError, MySQLdb.Error), e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            print "Cound not destrut the ScrapWeiboPipeline.Object.\nFile \"%s\", line %s.\n MySql Error:%s" \
+            info =  "Cound not destrut the ScrapWeiboPipeline.Object.\nFile \"%s\", line %s.\n MySql Error:%s" \
+                  % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
                   % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
 
     def process_item(self, item, spider):
