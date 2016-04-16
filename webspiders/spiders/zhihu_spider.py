@@ -9,7 +9,6 @@ import logging.config
 from scrapy.http import Request
 from scrapy.spider import Spider
 
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -45,13 +44,13 @@ class ZhihuSpider(Spider):
                         'login': cookiejar['login'],
                         'n_c': cookiejar['n_c']}
         self.cookies2 = {'name': 'q_c1', 'value': cookiejar['q_c1'],
-                        'name': 'z_c0', 'value': cookiejar['z_c0'],
-                        'name': 'cap_id', 'value': cookiejar['cap_id'],
-                        'name': '_xsrf', 'value': cookiejar['_xsrf'],
-                        'name': 'unlock_ticket', 'value': cookiejar['unlock_ticket'],
-                        'name': 'l_cap_id', 'value': cookiejar['l_cap_id'],
-                        'name': 'login', 'value': cookiejar['login'],
-                        'name': 'n_c', 'value': cookiejar['n_c']}
+                         'name': 'z_c0', 'value': cookiejar['z_c0'],
+                         'name': 'cap_id', 'value': cookiejar['cap_id'],
+                         'name': '_xsrf', 'value': cookiejar['_xsrf'],
+                         'name': 'unlock_ticket', 'value': cookiejar['unlock_ticket'],
+                         'name': 'l_cap_id', 'value': cookiejar['l_cap_id'],
+                         'name': 'login', 'value': cookiejar['login'],
+                         'name': 'n_c', 'value': cookiejar['n_c']}
         self.headers = {'User-agent': 'Mozilla/5.0 (X11; Linux x86_64)'
                                       'AppleWebKit/537.36(KHTML, like Gecko)'
                                       'Chrome/44.0.2403.155 Safari/537.36',
@@ -84,3 +83,13 @@ class ZhihuSpider(Spider):
         """获取zhihu的所有问题"""
         logger.info("获取zhihu的所有问题.")
         # print response.body
+
+    def _login(self):
+        """知乎爬虫的登陆模块(此处用selenium模拟登陆)"""
+       r = 1
+       while r != 0:
+           print(u'输入用户名:')
+           self.user = raw_input()
+           print(u'输入密码:')
+           self.pwd = raw_input()
+           self.
