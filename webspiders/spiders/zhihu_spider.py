@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium import selenium
 
 from webspiders.utils.zhihu_login import ZhihuLogin
 # from webspiders.items import WeiboItem, ParamItem
@@ -91,14 +92,20 @@ class ZhihuSpider(Spider):
         """知乎爬虫的登陆模块(此处用selenium模拟登陆)"""
         r = 1
         while r != 0:
-            # try:
+            try:
                 self.driver.set_page_load_timeout(20)  # 防止页面加载不完
-                self.driver.get('https://www.zhihu.com/#signin')
-                time.sleep(10)  # sleep 20 秒等待用户输入账号信息
-                response = TextResponse(u'https://www.zhihu.com/#signin', self.driver.page_source, encoding='utf-8')
-                response.xpath('//script')
-            #except:
-            #    pass
+                self.driver.get('http://www.zhihu.com/#signin')
+                time.sleep(20)  # sleep 20 秒等待用户输入账号信息
+                self.driver.get('http://www.zhihu.com/#sighin')
+                # response = TextResponse(url=self.driver.current_url, body=self.driver.page_source.encode('utf-8'), encoding='utf-8')
+                user_info = response.xpath('/html/body/script[@data-name="current_user"]/text()')
+                user_info = usr.extract()[0].split(',')
+                print user_info[0]
+                if user_info[0]:
+                    print user_info[0]
+                    break
+            except:
+                pass
             # email = self.driver.find_element_by_xpath("//input[@name='email']")
             # email.clear()
             # email.send_keys(self.user)
