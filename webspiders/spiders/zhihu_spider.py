@@ -95,26 +95,16 @@ class ZhihuSpider(Spider):
             try:
                 self.driver.set_page_load_timeout(20)  # 防止页面加载不完
                 self.driver.get('http://www.zhihu.com/#signin')
-                time.sleep(20)  # sleep 20 秒等待用户输入账号信息
+                time.sleep(10)  # sleep 20 秒等待用户输入账号信息
                 self.driver.get('http://www.zhihu.com/#sighin')
-                # response = TextResponse(url=self.driver.current_url, body=self.driver.page_source.encode('utf-8'), encoding='utf-8')
+                response = TextResponse(url=self.driver.current_url, body=self.driver.page_source.encode('utf-8'))
                 user_info = response.xpath('/html/body/script[@data-name="current_user"]/text()')
-                user_info = usr.extract()[0].split(',')
-                print user_info[0]
-                if user_info[0]:
-                    print user_info[0]
+                user_info = user_info.extract()[0].replace('[', '').replace(']', '').replace('\"', '').split(',')
+                if not user_info[0] == '':
+                    print u'用户%s登陆成功' % user_info[0]
+                    logger.info(u'用户%s登陆成功' % user_info[0])
                     break
+                else:
+                    logger.error(u'账号或者密码输入错误.')
             except:
-                pass
-            # email = self.driver.find_element_by_xpath("//input[@name='email']")
-            # email.clear()
-            # email.send_keys(self.user)
-            # password = self.driver.find_element_by_xpath("//input[@name='password']")
-            # password.clear()
-            # password.send_keys(self.pwd)
-            # form = self.driver.find_element_by_xpath("//form[@class='zu-side-login-box']")
-            # form.submit()
-            # somedom = WebDriverWait(self.driver, 60).until(lambda brow: brow.find_elements_by_class_name("zu-main-feed-con"))[0]
-            # html = somedom.find_element_by_xpath("//*").get_attribute("outerHTML")
-            # print html
-            # self.driver.quit()
+               continue

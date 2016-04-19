@@ -61,8 +61,7 @@ class ScrapyWeiboPipeline(object):
             self.db.close()
         except (AttributeError, MySQLdb.Error), e:
             exc_type, exc_value, exc_traceback = sys.exc_info()
-            info =  "Cound not destrut the ScrapWeiboPipeline.Object.\nFile \"%s\", line %s.\n MySql Error:%s" \
-                  % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
+            info = "Cound not destrut the ScrapWeiboPipeline.Object.\nFile \"%s\", line %s.\n MySql Error:%s" \
                   % (exc_traceback.tb_frame.f_code.co_filename, exc_traceback.tb_lineno, e)
 
     def process_item(self, item, spider):
